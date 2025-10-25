@@ -1,0 +1,113 @@
+-- Roblox Executor Cute Loading Screen with 5000/5000 Progress
+
+local duration = 600 -- 10 minutes
+local totalAssets = 5000
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Screen GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ChibiLoadingScreen"
+screenGui.Parent = playerGui
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 180)
+frame.Position = UDim2.new(0.5, -150, 0.5, -90)
+frame.BackgroundColor3 = Color3.fromRGB(255, 240, 245)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+frame.BackgroundTransparency = 1
+
+-- Fade In/Out Functions
+local function fadeIn(gui, time)
+    for i = 0, 1, 0.02 do
+        gui.BackgroundTransparency = 1 - i
+        wait(time/50)
+    end
+end
+
+local function fadeOut(gui, time)
+    for i = 0, 1, 0.02 do
+        gui.BackgroundTransparency = i
+        wait(time/50)
+    end
+end
+
+-- Loading Text
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, -20, 0, 50)
+textLabel.Position = UDim2.new(0, 10, 0, 10)
+textLabel.BackgroundTransparency = 1
+textLabel.Text = "Loading..."
+textLabel.Font = Enum.Font.FredokaOne
+textLabel.TextColor3 = Color3.fromRGB(255, 182, 193)
+textLabel.TextScaled = true
+textLabel.Parent = frame
+
+-- Asset Counter Text
+local assetText = Instance.new("TextLabel")
+assetText.Size = UDim2.new(1, -20, 0, 30)
+assetText.Position = UDim2.new(0, 10, 0, 70)
+assetText.BackgroundTransparency = 1
+assetText.Font = Enum.Font.FredokaOne
+assetText.TextColor3 = Color3.fromRGB(255, 105, 180)
+assetText.TextScaled = true
+assetText.Text = "0/"..totalAssets
+assetText.Parent = frame
+
+-- Progress Bar Background
+local progressBg = Instance.new("Frame")
+progressBg.Size = UDim2.new(1, -20, 0, 20)
+progressBg.Position = UDim2.new(0, 10, 0, 120)
+progressBg.BackgroundColor3 = Color3.fromRGB(255, 200, 220)
+progressBg.BorderSizePixel = 0
+progressBg.Parent = frame
+
+-- Progress Bar Fill
+local progressFill = Instance.new("Frame")
+progressFill.Size = UDim2.new(0, 0, 1, 0)
+progressFill.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+progressFill.BorderSizePixel = 0
+progressFill.Parent = progressBg
+
+-- Cute Spinner
+local spinner = Instance.new("Frame")
+spinner.Size = UDim2.new(0, 30, 0, 30)
+spinner.Position = UDim2.new(1, -40, 0, 10)
+spinner.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
+spinner.BorderSizePixel = 0
+spinner.Rotation = 0
+spinner.AnchorPoint = Vector2.new(0.5, 0.5)
+spinner.Parent = frame
+
+-- Spinner Animation
+spawn(function()
+    while true do
+        spinner.Rotation = spinner.Rotation + 5
+        wait(0.03)
+    end
+end)
+
+-- Animate Progress and Counter
+local startTime = tick()
+while tick() - startTime < duration do
+    local elapsed = tick() - startTime
+    local progress = elapsed / duration
+    progressFill.Size = UDim2.new(progress, 0, 1, 0)
+    
+    local loadedAssets = math.floor(progress * totalAssets)
+    assetText.Text = loadedAssets.."/"..totalAssets
+    
+    wait(0.1)
+end
+
+-- Finish
+progressFill.Size = UDim2.new(1, 0, 1, 0)
+assetText.Text = totalAssets.."/"..totalAssets
+textLabel.Text = "Done!"
+fadeIn(frame, 1)
+wait(2)
+fadeOut(frame, 1)
+screenGui:Destroy()
