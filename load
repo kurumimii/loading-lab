@@ -1,126 +1,209 @@
--- Roblox Executor Cute Loading Screen (10 minutes)
+--// KurumiHub Loading Screen (Voxium Inspired - Front Base View)
 
-local duration = 600 -- 10 minutes
-local totalAssets = 6750
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local cam = workspace.CurrentCamera
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
 
--- Screen GUI
+-- Remove old UI
+if playerGui:FindFirstChild("KurumiHubLoading") then
+	playerGui.KurumiHubLoading:Destroy()
+end
+
+-- Add Blur
+local blur = Instance.new("BlurEffect")
+blur.Size = 14
+blur.Parent = Lighting
+
+-- ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ChibiLoadingScreen"
+screenGui.Name = "KurumiHubLoading"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.Parent = playerGui
 
--- Main Frame (with transparent background)
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 250)
-frame.Position = UDim2.new(0.5, -150, 0.5, -125)
-frame.BackgroundTransparency = 1 -- hide original solid background
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
+-- Input Blocker
+local blocker = Instance.new("Frame")
+blocker.Size = UDim2.new(1,0,1,0)
+blocker.BackgroundTransparency = 1
+blocker.Active = true
+blocker.Selectable = true
+blocker.Parent = screenGui
 
--- Moving Striped Background
-local stripesBg = Instance.new("ImageLabel")
-stripesBg.Size = UDim2.new(2, 0, 2, 0) -- bigger than frame for smooth scrolling
-stripesBg.Position = UDim2.new(0, 0, 0, 0)
-stripesBg.BackgroundTransparency = 1
-stripesBg.Image = "rbxassetid://INSERT_STRIPES_IMAGE_ID" -- replace with repeating stripes asset
-stripesBg.ScaleType = Enum.ScaleType.Tile
-stripesBg.Parent = frame
+-- Background Overlay
+local overlay = Instance.new("Frame")
+overlay.Size = UDim2.new(1,0,1,0)
+overlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
+overlay.BackgroundTransparency = 0.45
+overlay.Parent = screenGui
 
--- Animate stripes (diagonal movement)
-spawn(function()
-    while true do
-        stripesBg.Position = stripesBg.Position + UDim2.new(-0.002, 0, -0.002, 0)
-        if stripesBg.Position.X.Scale <= -1 then
-            stripesBg.Position = UDim2.new(0, 0, 0, 0)
-        end
-        wait(0.03)
-    end
+-- Main Panel
+local panel = Instance.new("Frame")
+panel.AnchorPoint = Vector2.new(0.5,0.5)
+panel.Position = UDim2.new(0.5,0,0.5,0)
+panel.Size = UDim2.new(0,520,0,280)
+panel.BackgroundColor3 = Color3.fromRGB(20,20,25)
+panel.BackgroundTransparency = 0.2
+panel.Parent = overlay
+panel.BorderSizePixel = 0
+
+local corner = Instance.new("UICorner", panel)
+corner.CornerRadius = UDim.new(0,20)
+
+-- Drop shadow
+local shadow = Instance.new("ImageLabel")
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageTransparency = 0.6
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10,10,118,118)
+shadow.Size = UDim2.new(1,30,1,30)
+shadow.Position = UDim2.new(0,-15,0,-15)
+shadow.BackgroundTransparency = 1
+shadow.ZIndex = 0
+shadow.Parent = panel
+
+-- Title
+local title = Instance.new("TextLabel")
+title.AnchorPoint = Vector2.new(0.5,0)
+title.Position = UDim2.new(0.5,0,0.08,0)
+title.Text = "KurumiHub"
+title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.fromRGB(190,150,255)
+title.TextStrokeTransparency = 0.8
+title.TextSize = 38
+title.BackgroundTransparency = 1
+title.Parent = panel
+
+-- Username Info
+local info = Instance.new("TextLabel")
+info.AnchorPoint = Vector2.new(0.5,0)
+info.Position = UDim2.new(0.5,0,0.58,0)
+info.Text = player.Name.." • "..math.random(600,800).." days • Standard"
+info.Font = Enum.Font.GothamMedium
+info.TextColor3 = Color3.fromRGB(220,220,220)
+info.TextTransparency = 0.05
+info.TextSize = 16
+info.BackgroundTransparency = 1
+info.Parent = panel
+
+-- Status Text
+local status = Instance.new("TextLabel")
+status.AnchorPoint = Vector2.new(0.5,0)
+status.Position = UDim2.new(0.5,0,0.66,0)
+status.Text = "Initializing"
+status.Font = Enum.Font.GothamBold
+status.TextColor3 = Color3.fromRGB(130,130,255)
+status.TextSize = 22
+status.BackgroundTransparency = 1
+status.TextStrokeTransparency = 0.7
+status.Parent = panel
+
+-- Avatar (centered vertically between title and info)
+local avatar = Instance.new("ImageLabel")
+avatar.AnchorPoint = Vector2.new(0.5,0.5)
+avatar.Position = UDim2.new(0.5,0,(0.08 + 0.58)/2,0) -- center Y between title (0.08) and info (0.58)
+avatar.Size = UDim2.new(0,85,0,85)
+avatar.BackgroundTransparency = 1
+avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="
+	..player.UserId.."&width=180&height=180&format=png"
+avatar.Parent = panel
+
+local avCorner = Instance.new("UICorner", avatar)
+avCorner.CornerRadius = UDim.new(1,0)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(255, 255, 150) -- light yellow
+stroke.Thickness = 3
+stroke.Parent = avatar
+
+-- Progress Bar
+local barBG = Instance.new("Frame")
+barBG.AnchorPoint = Vector2.new(0.5,0)
+barBG.Position = UDim2.new(0.5,0,0.78,0)
+barBG.Size = UDim2.new(0.8,0,0,12)
+barBG.BackgroundColor3 = Color3.fromRGB(45,45,90)
+barBG.BorderSizePixel = 0
+barBG.Parent = panel
+Instance.new("UICorner", barBG).CornerRadius = UDim.new(1,0)
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0,0,1,0)
+barFill.BackgroundColor3 = Color3.fromRGB(110,90,255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBG
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(1,0)
+
+-- Percent
+local percent = Instance.new("TextLabel")
+percent.AnchorPoint = Vector2.new(0.5,0)
+percent.Position = UDim2.new(0.5,0,0.85,0)
+percent.Text = "1%"
+percent.Font = Enum.Font.Gotham
+percent.TextColor3 = Color3.fromRGB(220,220,255)
+percent.TextStrokeTransparency = 0.8
+percent.TextSize = 18
+percent.BackgroundTransparency = 1
+percent.Parent = panel
+
+-- Support Text
+local support = Instance.new("TextLabel")
+support.AnchorPoint = Vector2.new(0.5,1)
+support.Position = UDim2.new(0.5,0,0.97,0)
+support.Text = "Support https://discord.gg/59XeEXRe"
+support.Font = Enum.Font.Gotham
+support.TextColor3 = Color3.fromRGB(140,140,160)
+support.TextSize = 14
+support.BackgroundTransparency = 1
+support.Parent = panel
+
+-- Bottom Info
+local bottom = Instance.new("Frame")
+bottom.AnchorPoint = Vector2.new(0.5,1)
+bottom.Position = UDim2.new(0.5,0,1,0)
+bottom.Size = UDim2.new(0.8,0,0,20)
+bottom.BackgroundTransparency = 1
+bottom.Parent = panel
+
+local labels = {"🔒 Secure","⚡ Fast","✨ Latest"}
+for i, text in ipairs(labels) do
+	local l = Instance.new("TextLabel")
+	l.Text = text
+	l.Font = Enum.Font.Gotham
+	l.TextColor3 = Color3.fromRGB(190,190,190)
+	l.TextSize = 14
+	l.BackgroundTransparency = 1
+	l.AnchorPoint = Vector2.new(0.5,0.5)
+	l.Position = UDim2.new((i-1)/(#labels-1),0,0.5,0)
+	l.Parent = bottom
+end
+
+-- Loading Animation
+local duration = 300 -- 5 minutes
+TweenService:Create(barFill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(0.99,0,1,0)}):Play()
+
+task.spawn(function()
+	for i = 1,99 do
+		percent.Text = i.."%"
+		task.wait(duration / 99)
+	end
+	status.Text = "Finalizing..."
 end)
 
--- Fade In / Fade Out
-local function fadeIn(gui, time)
-    for i = 0, 1, 0.02 do
-        gui.BackgroundTransparency = 1 - (0.4 * i) -- slightly visible stripes
-        wait(time * 0.02)
-    end
+-- Camera view
+task.wait(1)
+local base = workspace:FindFirstChild(player.Name .. "'s Base") or workspace:FindFirstChild("Base") or workspace:FindFirstChild("SpawnLocation") or workspace:FindFirstChildWhichIsA("Part")
+
+if base then
+	cam.CameraType = Enum.CameraType.Scriptable
+
+	local frontOffset = 120
+	local heightOffset = 40
+	local basePos = base.Position
+	local camPos = basePos + Vector3.new(0, heightOffset, frontOffset)
+
+	cam.CFrame = CFrame.new(camPos, basePos + Vector3.new(0, 15, 0))
+else
+	warn("KurumiHub: Could not find base for camera positioning.")
 end
-
-local function fadeOut(gui, time)
-    for i = 0, 1, 0.02 do
-        gui.BackgroundTransparency = 0.6 + (0.4 * i)
-        wait(time * 0.02)
-    end
-end
-
--- Loading Text (Top)
-local textLabel = Instance.new("TextLabel")
-textLabel.Size = UDim2.new(0.9, 0, 0.2, 0)
-textLabel.Position = UDim2.new(0.5, 0, 0.05, 0)
-textLabel.AnchorPoint = Vector2.new(0.5, 0)
-textLabel.BackgroundTransparency = 1
-textLabel.Text = "Loading..."
-textLabel.Font = Enum.Font.FredokaOne
-textLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
-textLabel.TextScaled = true
-textLabel.TextWrapped = true
-textLabel.Parent = frame
-
--- Circle Logo (Centered Below Text)
-local logo = Instance.new("ImageLabel")
-logo.Size = UDim2.new(0, 80, 0, 80)
-logo.Position = UDim2.new(0.5, 0, 0.35, 0)
-logo.AnchorPoint = Vector2.new(0.5, 0.5)
-logo.BackgroundTransparency = 1
-logo.Image = "rbxassetid://INSERT_YOUR_ASSET_ID_HERE" -- replace with your logo
-logo.Parent = frame
-
--- Asset Counter (Below Logo)
-local assetLabel = Instance.new("TextLabel")
-assetLabel.Size = UDim2.new(0.8, 0, 0.15, 0)
-assetLabel.Position = UDim2.new(0.5, 0, 0.55, 0)
-assetLabel.AnchorPoint = Vector2.new(0.5, 0)
-assetLabel.BackgroundTransparency = 1
-assetLabel.Text = "0/"..totalAssets
-assetLabel.Font = Enum.Font.FredokaOne
-assetLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
-assetLabel.TextScaled = true
-assetLabel.Parent = frame
-
--- Progress Bar (Below Asset Label)
-local progressBg = Instance.new("Frame")
-progressBg.Size = UDim2.new(0.8, 0, 0, 20)
-progressBg.Position = UDim2.new(0.1, 0, 0.7, 0)
-progressBg.BackgroundColor3 = Color3.fromRGB(255, 200, 220)
-progressBg.BorderSizePixel = 0
-progressBg.Parent = frame
-
-local progressFill = Instance.new("Frame")
-progressFill.Size = UDim2.new(0, 0, 1, 0)
-progressFill.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
-progressFill.BorderSizePixel = 0
-progressFill.Parent = progressBg
-
--- Fade in frame at start
-fadeIn(frame, 1)
-
--- Animate Progress and Asset Count
-local startTime = os.clock()
-while true do
-    local elapsed = os.clock() - startTime
-    if elapsed > duration then break end
-    local progress = elapsed / duration
-    progressFill.Size = UDim2.new(progress, 0, 1, 0)
-    local assetsLoaded = math.floor(progress * totalAssets)
-    assetLabel.Text = assetsLoaded.."/"..totalAssets
-    wait(0.1)
-end
-
--- Ensure full completion
-progressFill.Size = UDim2.new(1, 0, 1, 0)
-assetLabel.Text = totalAssets.."/"..totalAssets
-textLabel.Text = "Done!"
-wait(2)
-fadeOut(frame, 1)
-screenGui:Destroy()
